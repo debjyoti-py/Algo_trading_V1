@@ -307,7 +307,6 @@ while True:
                 orderbook[trading_symbol]['name'] = trading_symbol
                 orderbook[trading_symbol]['date'] = str(current_time.date())
                 orderbook[trading_symbol]['entry_time'] = str(current_time.time())[:8]
-                orderbook[trading_symbol]['max_holding_time'] = datetime.datetime.now() + datetime.timedelta(hours=2)
                 orderbook[trading_symbol]['buy_sell'] = "BUY"
                 orderbook[trading_symbol]['qty'] = 1
                 
@@ -447,7 +446,6 @@ while True:
                 
                 sl_hit = tsl.get_order_status(orderid=orderbook[trading_symbol]['sl_orderid']) == "TRADED"
                 tg_hit = ltp > orderbook[trading_symbol]['tg']
-                max_holding_time_exceeded = datetime.datetime.now() > orderbook[trading_symbol]['max_holding_time']
                 current_pnl = round((ltp - orderbook[trading_symbol]['entry_price'])*orderbook[trading_symbol]['qty'], 1)
                 
                 print(f"   📍 Entry={orderbook[trading_symbol]['entry_price']}, LTP={ltp}, PNL=₹{current_pnl}")
@@ -537,10 +535,7 @@ while True:
                     else:
                         print(f"❌ Could not place exit order at target")
                 
-                if max_holding_time_exceeded and (current_pnl < 0):
-                    print(f"📤 Time exceeded with negative PNL. Cancelling SL and placing SELL order...")
-                    tsl.cancel_order(OrderID=orderbook[trading_symbol]['sl_orderid'])
-                    time.sleep(2)
+                
                     
                     square_off_order = None
                     for exit_attempt in range(3):
