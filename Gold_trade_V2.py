@@ -248,7 +248,7 @@ while True:
             prev_cc = chart.iloc[-3]
 
             # BUY signal conditions
-            buy_c1 = cc['rsi'] > 55
+            buy_c1 = cc['rsi'] > 50
             buy_c2 = orderbook[trading_symbol]['traded'] is None
             buy_c3 = cc['buy_signal']  # OBV EMA bullish condition
             # MACD bullish crossover and above signal
@@ -258,7 +258,7 @@ while True:
             buy_c4 = (macd_crossover | curr_macd_above)
 
             # SELL signal conditions
-            sell_c1 = cc['rsi'] < 35
+            sell_c1 = cc['rsi'] < 40
             sell_c2 = orderbook[trading_symbol]['traded'] is None
             sell_c3 = cc['sell_signal']  # OBV EMA bearish condition
             sell_c4 = cc['MACD'] < cc['MACD_Signal']
@@ -305,7 +305,7 @@ while True:
             print(f"   📊 RSI={cc['rsi']:.2f} | Market={cc['market_type']}")
             print(f"   📈 MACD={macd_value:.2f} | Signal={macd_signal:.2f} | Zone={macd_zone} | Status={macd_status}")
             print(f"   📊 OBV={obv_value:,.0f} | EMA={obv_ema_value:,.0f} | Status={obv_status}")
-            print(f"   🎯 BUY: RSI>55={buy_c1} | OBV_EMA+={buy_c3} | MACD+={buy_c4}")
+            print(f"   🎯 BUY: RSI>50={buy_c1} | OBV_EMA+={buy_c3} | MACD+={buy_c4}")
             print(f"   🎯 SELL: RSI<40={sell_c1} | OBV-={sell_c3} | MACD-={sell_c4}")
 
         except Exception as e:
@@ -354,7 +354,7 @@ while True:
                             trigger_price=0,
                             order_type='MARKET',
                             transaction_type='BUY',
-                            trade_type='NRML'
+                            trade_type='MIS'
                         )
 
                         if entry_orderid and not isinstance(entry_orderid, dict):
@@ -392,8 +392,8 @@ while True:
                     continue
 
                 orderbook[trading_symbol]['entry_price'] = entry_price
-                orderbook[trading_symbol]['tg'] = round(entry_price*1.008, 1)
-                orderbook[trading_symbol]['sl'] = round(entry_price*0.996, 1)
+                orderbook[trading_symbol]['tg'] = round(entry_price*1.002, 1)
+                orderbook[trading_symbol]['sl'] = round(entry_price*0.998, 1)
                 print(f"📊 TG: ₹{orderbook[trading_symbol]['tg']}, SL: ₹{orderbook[trading_symbol]['sl']}")
 
                 # Place Stop Loss
@@ -411,7 +411,7 @@ while True:
                             trigger_price=sl_price,
                             order_type='STOPMARKET',
                             transaction_type='SELL',
-                            trade_type='NRML'
+                            trade_type='MIS'
                         )
 
                         if sl_orderid and not isinstance(sl_orderid, dict):
@@ -497,7 +497,7 @@ while True:
                         trigger_price=0,
                         order_type='MARKET',
                         transaction_type='SELL',
-                        trade_type='NRML'
+                        trade_type='MIS'
                     )
                     print(f"\n   📤 Order Response: {entry_orderid}")
                 except Exception as order_error:
@@ -550,13 +550,13 @@ while True:
 
                     orderbook[trading_symbol]['entry_orderid'] = entry_orderid
                     orderbook[trading_symbol]['entry_price'] = entry_price
-                    orderbook[trading_symbol]['tg'] = round(entry_price * 0.992, 1)
-                    orderbook[trading_symbol]['sl'] = round(entry_price * 1.004, 0)
+                    orderbook[trading_symbol]['tg'] = round(entry_price * 0.998, 1)
+                    orderbook[trading_symbol]['sl'] = round(entry_price * 1.002, 0)
 
                     print(f"\n   ✅ Entry Executed Successfully!")
                     print(f"   Entry Price: ₹{entry_price:,.2f}")
-                    print(f"   Target: ₹{orderbook[trading_symbol]['tg']:,.2f} (-0.4%)")
-                    print(f"   Stop Loss: ₹{orderbook[trading_symbol]['sl']:,.2f} (+0.8%)")
+                    print(f"   Target: ₹{orderbook[trading_symbol]['tg']:,.2f} (-0.2%)")
+                    print(f"   Stop Loss: ₹{orderbook[trading_symbol]['sl']:,.2f} (+0.2%)")
 
                 except Exception as price_error:
                     print(f"\n   ❌ Price error: {price_error}")
@@ -574,7 +574,7 @@ while True:
                         trigger_price=int(orderbook[trading_symbol]['sl']),  # Convert to integer for stop loss
                         order_type='STOPMARKET',
                         transaction_type='BUY',
-                        trade_type='NRML'
+                        trade_type='MIS'
                     )
 
                     if sl_orderid and sl_orderid != '':
@@ -715,7 +715,7 @@ while True:
                                 trigger_price=0,
                                 order_type='MARKET',
                                 transaction_type=exit_transaction,
-                                trade_type='NRML'
+                                trade_type='MIS'
                             )
 
                             if square_off_order and not isinstance(square_off_order, dict):
