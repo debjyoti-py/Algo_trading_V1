@@ -9,8 +9,8 @@ from pprint import pprint
 import talib
 import pandas_ta as ta
 import xlwings as xw
-from client_code_storage import client_code
-from token_id_storage import token_id
+from credentials import client_code
+from credentials import token_id
 import winsound
 import sqn_lib
 

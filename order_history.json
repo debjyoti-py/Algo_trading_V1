@@ -1,0 +1,53 @@
+[
+  {
+    "entry_order_id": "2182601138733",
+    "entry_price": 14362.0,
+    "date": "2026-01-13",
+    "entry_time": "12:38:02",
+    "sl_order_id": "2382601138633",
+    "target_price": 14247.1,
+    "stop_loss_price": 14419.0,
+    "symbol": "GOLDPETAL JAN FUT",
+    "scan_symbol": "GOLD FEB FUT",
+    "quantity": 1,
+    "direction": "SELL"
+  },
+  {
+    "entry_order_id": "2182601138733",
+    "entry_price": 14362.0,
+    "date": "2026-01-13",
+    "entry_time": "12:38:02",
+    "sl_order_id": "2382601138633",
+    "exit_price": 14419.0,
+    "exit_time": "14:03:05",
+    "pnl": -57.0,
+    "remark": "SL_hit",
+    "symbol": "GOLDPETAL JAN FUT"
+  },
+  {
+    "entry_order_id": "248260113382003",
+    "entry_price": 14443.0,
+    "date": "2026-01-13",
+    "entry_time": "18:43:25",
+    "sl_order_id": "248260113382303",
+    "target_price": 14558.5,
+    "stop_loss_price": 14385.2,
+    "symbol": "GOLDPETAL JAN FUT",
+    "scan_symbol": "GOLD FEB FUT",
+    "quantity": 1,
+    "direction": "BUY"
+  },
+  {
+    "entry_order_id": "22826011355513",
+    "entry_price": 14442.0,
+    "date": "2026-01-13",
+    "entry_time": "20:12:16",
+    "sl_order_id": "21826011357783",
+    "target_price": 14557.5,
+    "stop_loss_price": 14384.2,
+    "symbol": "GOLDPETAL JAN FUT",
+    "scan_symbol": "GOLD FEB FUT",
+    "quantity": 1,
+    "direction": "BUY"
+  }
+]
