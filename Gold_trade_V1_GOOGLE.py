@@ -45,12 +45,15 @@ except Exception as e:
 # === CONFIGURATION ===
 max_risk_for_today = (1.0*opening_balance)/100*-1
 
-SCAN_SYMBOL_OPTIONS = ['GOLD FEB FUT', 'GOLD05FEB26FUT', 'GOLDFEB26FUT',
-                        'GOLD APR FUT', 'GOLD05APR26FUT', 'GOLDAPR26FUT', 'GOLD']
+SCAN_SYMBOL_OPTIONS = ['GOLDPETAL FEB FUT', 'GOLDPETAL27FEB26FUT',
+                         'GOLDPETAL MAY FUT', 'GOLDPETAL29MAY26FUT',
+                         'GOLDPETALMAY26FUT', 'GOLDPETAL']
 
-TRADING_SYMBOL_OPTIONS = ['GOLDPETAL JAN FUT', 'GOLDPETAL31JAN26FUT',
-                          'GOLDPETAL APR FUT', 'GOLDPETAL30APR26FUT',
-                          'GOLDPETALAPR26FUT', 'GOLDPETAL']
+
+TRADING_SYMBOL_OPTIONS = ['GOLDPETAL FEB FUT', 'GOLDPETAL27FEB26FUT',
+                         'GOLDPETAL MAY FUT', 'GOLDPETAL29MAY26FUT',
+                         'GOLDPETALMAY26FUT', 'GOLDPETAL']
+
 
 # Test GOLD scan symbol
 print("🔍 Testing GOLD scan symbol formats...")
@@ -149,7 +152,7 @@ completed_orders = []
 
 bot_token = "8549724310:AAHOJhoxbl2NPzHblsi04cRVabjREadq-UU"
 receiver_chat_id = "6193962152"
-receiver_chat_id_2 = "1169187573"
+receiver_chat_id_2 = "1234522531"                                               #             1169187573
 
 orderbook[trading_symbol] = single_order.copy()
 
