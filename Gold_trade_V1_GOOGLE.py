@@ -70,7 +70,7 @@ for symbol in SCAN_SYMBOL_OPTIONS:
         continue
 
 if not scan_symbol:
-    print(f"❌ GOLD scan symbol not found!")
+    print(f"❌ GOLDPETAL scan symbol not found!")
     exit()
 
 # Test GOLDPETAL trading symbol
