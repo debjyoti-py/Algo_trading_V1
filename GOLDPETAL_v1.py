@@ -449,7 +449,7 @@ try:
 
         if live_pnl <= max_risk_for_today:
             print(f"🛑 MAX LOSS HIT! PNL: ₹{live_pnl:,.2f}")
-            break
+            pass
 
         # GET LTP with VALIDATION
         try:
@@ -613,7 +613,7 @@ try:
                             entry_orderid = tsl.order_placement(
                                 tradingsymbol=trading_symbol,
                                 exchange='MCX',
-                                quantity=4,
+                                quantity=1,
                                 price=0,
                                 trigger_price=0,
                                 order_type='MARKET',
@@ -671,7 +671,7 @@ try:
                             sl_orderid = tsl.order_placement(
                                 tradingsymbol=trading_symbol,
                                 exchange='MCX',
-                                quantity=4,
+                                quantity=1,
                                 price=0,
                                 trigger_price=sl_price,
                                 order_type='STOPMARKET',
@@ -697,13 +697,14 @@ try:
                         sl_orderid = None
 
                     # Add to orderbook with order_id as key
+                    # Add to orderbook with order_id as key
                     orderbook[entry_orderid] = {
                         'name': trading_symbol,
                         'date': str(current_time.date()),
                         'entry_time': str(current_time.time())[:8],
                         'entry_price': entry_price,
                         'buy_sell': 'BUY',
-                        'qty': 4,
+                        'qty': 1,
                         'sl': stop_loss_price,
                         'tg': target_price,
                         'entry_orderid': entry_orderid,
@@ -712,8 +713,16 @@ try:
                         'exit_price': None,
                         'pnl': None,
                         'remark': None,
-                        'traded': 'yes'
+                        'traded': 'yes',
+                        'entry_rsi': cc['rsi'],
+                        'entry_macd': macd_value,
+                        'entry_macd_signal': macd_signal,
+                        'entry_macd_status': macd_status,
+                        'entry_obv': obv_value,
+                        'entry_obv_ema': obv_ema_value,
+                        'entry_obv_status': obv_status
                     }
+
 
                     # Mark symbol as having open position
                     open_symbols.add(trading_symbol)
@@ -728,7 +737,7 @@ try:
                         'stop_loss_price': stop_loss_price,
                         'symbol': trading_symbol,
                         'scan_symbol': scan_name,
-                        'quantity': 4,
+                        'quantity': 1,
                         'direction': 'BUY'
                     }
 
@@ -740,19 +749,23 @@ try:
 📅 Date: {str(current_time.date())}
 📊 Symbol: {trading_symbol}
 📍 Direction: BUY
-📦 Quantity: 4
-
+📦 Quantity: 1
 💰 Entry Price: ₹{entry_price:,.2f}
 🎯 Target: ₹{target_price:,.2f}
 🛑 Stop Loss: ₹{stop_loss_price:,.2f}
-
 ⏰ Entry Time: {str(current_time.time())[:8]}
-
 📋 Entry Order ID: {entry_orderid}
 📋 SL Order ID: {sl_orderid}
+
+📊 INDICATORS AT ENTRY:
+📈 RSI: {cc['rsi']:.2f}
+📉 MACD: {macd_value:.2f} | Signal: {macd_signal:.2f}
+📊 MACD Status: {macd_status}
+📦 OBV: {obv_value:,.0f} | EMA: {obv_ema_value:,.0f}
+✅ OBV Status: {obv_status}
+
 📊 Total Open Positions: {len(orderbook)}"""
 
-                    print(f"✅ BUY Order placed!")
 
                     try:
                         tsl.send_telegram_alert(message=message, receiver_chat_id=receiver_chat_id, bot_token=bot_token)
@@ -795,7 +808,7 @@ try:
                             entry_orderid = tsl.order_placement(
                                 tradingsymbol=trading_symbol,
                                 exchange='MCX',
-                                quantity=4,
+                                quantity=1,
                                 price=0,
                                 trigger_price=0,
                                 order_type='MARKET',
@@ -849,7 +862,7 @@ try:
                             sl_orderid = tsl.order_placement(
                                 tradingsymbol=trading_symbol,
                                 exchange='MCX',
-                                quantity=4,
+                                quantity=1,
                                 price=0,
                                 trigger_price=sl_price,
                                 order_type='STOPMARKET',
@@ -873,23 +886,31 @@ try:
                         print(f"⚠️ SL order placement failed, continuing without SL...")
                         sl_orderid = None
 
-                    orderbook[entry_orderid] = {
-                        'name': trading_symbol,
-                        'date': str(current_time.date()),
-                        'entry_time': str(current_time.time())[:8],
-                        'entry_price': entry_price,
-                        'buy_sell': 'SELL',
-                        'qty': 4,
-                        'sl': stop_loss_price,
-                        'tg': target_price,
-                        'entry_orderid': entry_orderid,
-                        'sl_orderid': sl_orderid,
-                        'exit_time': None,
-                        'exit_price': None,
-                        'pnl': None,
-                        'remark': None,
-                        'traded': 'yes'
-                    }
+                        orderbook[entry_orderid] = {
+            'name': trading_symbol,
+            'date': str(current_time.date()),
+            'entry_time': str(current_time.time())[:8],
+            'entry_price': entry_price,
+            'buy_sell': 'SELL',
+            'qty': 1,
+            'sl': stop_loss_price,
+            'tg': target_price,
+            'entry_orderid': entry_orderid,
+            'sl_orderid': sl_orderid,
+            'exit_time': None,
+            'exit_price': None,
+            'pnl': None,
+            'remark': None,
+            'traded': 'yes',
+            'entry_rsi': cc['rsi'],
+            'entry_macd': macd_value,
+            'entry_macd_signal': macd_signal,
+            'entry_macd_status': macd_status,
+            'entry_obv': obv_value,
+            'entry_obv_ema': obv_ema_value,
+            'entry_obv_status': obv_status
+        }
+
 
                     open_symbols.add(trading_symbol)
 
@@ -903,7 +924,7 @@ try:
                         'stop_loss_price': stop_loss_price,
                         'symbol': trading_symbol,
                         'scan_symbol': scan_name,
-                        'quantity': 4,
+                        'quantity': 1,
                         'direction': 'SELL'
                     }
                     save_order_entry(order_entry)
@@ -913,14 +934,23 @@ try:
 📅 Date: {str(current_time.date())}
 📊 Symbol: {trading_symbol}
 📍 Direction: SELL
-📦 Quantity: 4
+📦 Quantity: 1
 💰 Entry Price: ₹{entry_price:,.2f}
 🎯 Target: ₹{target_price:,.2f}
 🛑 Stop Loss: ₹{stop_loss_price:,.2f}
 ⏰ Entry Time: {str(current_time.time())[:8]}
 📋 Entry Order ID: {entry_orderid}
 📋 SL Order ID: {sl_orderid}
+
+📊 INDICATORS AT ENTRY:
+📈 RSI: {cc['rsi']:.2f}
+📉 MACD: {macd_value:.2f} | Signal: {macd_signal:.2f}
+📊 MACD Status: {macd_status}
+📦 OBV: {obv_value:,.0f} | EMA: {obv_ema_value:,.0f}
+✅ OBV Status: {obv_status}
+
 📊 Total Open Positions: {len(orderbook)}"""
+
 
                     print(f"✅ SELL Order placed!")
 
@@ -973,19 +1003,61 @@ try:
                     print(f"   📍 Order {order_id[:10]}... | {direction} | Entry=₹{position['entry_price']} | LTP=₹{ltp} | PNL=₹{current_pnl}")
 
                     # === STOP LOSS HIT ===
+                    # === STOP LOSS HIT ===
                     if sl_hit:
                         exit_price = tsl.get_executed_price(orderid=position['sl_orderid'])
-
                         # FIXED P&L CALCULATION - MULTIPLY BY QUANTITY
                         if direction == "BUY":
                             pnl = round((exit_price - position['entry_price']) * position['qty'], 1)
                         else:
                             pnl = round((position['entry_price'] - exit_price) * position['qty'], 1)
-
                         print(f"\n🛑 SL HIT - Order {order_id}!")
-                        print(f"   Direction: {direction}")
-                        print(f"   Exit Price: ₹{exit_price:,.2f}")
-                        print(f"   P&L: ₹{pnl:,.2f}")
+                        print(f" Direction: {direction}")
+                        print(f" Exit Price: ₹{exit_price:,.2f}")
+                        print(f" P&L: ₹{pnl:,.2f}")
+
+                        # Calculate current indicators at EXIT time
+                        try:
+                            exit_chart = tsl.get_historical_data(tradingsymbol=scan_name, exchange='MCX', timeframe="15")
+                            if exit_chart is not None and len(exit_chart) >= 26:
+                                exit_chart['rsi'] = talib.RSI(exit_chart['close'], timeperiod=14)
+                                exit_chart['MACD'], exit_chart['MACD_Signal'], exit_chart['MACD_Hist'] = talib.MACD(
+                                    exit_chart['close'], fastperiod=12, slowperiod=26, signalperiod=9
+                                )
+                                exit_chart['obv'] = talib.OBV(exit_chart['close'], exit_chart['volume'])
+                                exit_chart['obv_ema'] = talib.EMA(exit_chart['obv'], timeperiod=50)
+                                exit_cc = exit_chart.iloc[-1]
+                                exit_rsi = exit_cc['rsi']
+                                exit_macd = exit_cc['MACD']
+                                exit_macd_signal = exit_cc['MACD_Signal']
+                                exit_obv = exit_cc['obv']
+                                exit_obv_ema = exit_cc['obv_ema']
+
+                                if exit_macd > exit_macd_signal:
+                                    exit_macd_status = "Above Signal (Bullish)"
+                                else:
+                                    exit_macd_status = "Below Signal (Bearish)"
+
+                                if exit_obv > exit_obv_ema:
+                                    exit_obv_status = "Above EMA (Bullish)"
+                                else:
+                                    exit_obv_status = "Below EMA (Bearish)"
+                            else:
+                                exit_rsi = "N/A"
+                                exit_macd = "N/A"
+                                exit_macd_signal = "N/A"
+                                exit_macd_status = "N/A"
+                                exit_obv = "N/A"
+                                exit_obv_ema = "N/A"
+                                exit_obv_status = "N/A"
+                        except:
+                            exit_rsi = "N/A"
+                            exit_macd = "N/A"
+                            exit_macd_signal = "N/A"
+                            exit_macd_status = "N/A"
+                            exit_obv = "N/A"
+                            exit_obv_ema = "N/A"
+                            exit_obv_status = "N/A"
 
                         exit_data = {
                             'exit_price': exit_price,
@@ -994,31 +1066,39 @@ try:
                             'remark': 'SL_hit',
                             'symbol': pos_symbol
                         }
-
                         update_order_exit(order_id, exit_data)
-
                         # IMPROVED TELEGRAM ALERT - STOP LOSS
                         sl_message = f"""🔴 STOP LOSS HIT
 
-📅 Date: {position['date']}
-📊 Symbol: {pos_symbol}
-📍 Direction: {direction}
-📦 Quantity: {position['qty']}
+                    📅 Date: {position['date']}
+                    📊 Symbol: {pos_symbol}
+                    📍 Direction: {direction}
+                    📦 Quantity: {position['qty']}
+                    💰 Entry Price: ₹{position['entry_price']:,.2f}
+                    💸 Exit Price: ₹{exit_price:,.2f}
+                    🛑 Stop Loss: ₹{position['sl']:,.2f}
+                    ⏰ Entry Time: {position['entry_time']}
+                    ⏱️ Exit Time: {exit_data['exit_time']}
+                    {'💔 Loss' if pnl < 0 else '💚 Profit'}: ₹{pnl:,.2f}
+                    🔖 Remark: SL HIT
 
-💰 Entry Price: ₹{position['entry_price']:,.2f}
-💸 Exit Price: ₹{exit_price:,.2f}
-🛑 Stop Loss: ₹{position['sl']:,.2f}
+                    📊 INDICATORS AT ENTRY:
+                    📈 RSI: {position.get('entry_rsi', 'N/A')}
+                    📉 MACD: {position.get('entry_macd', 'N/A')} | Signal: {position.get('entry_macd_signal', 'N/A')}
+                    📊 Status: {position.get('entry_macd_status', 'N/A')}
+                    📦 OBV: {position.get('entry_obv', 'N/A')} | EMA: {position.get('entry_obv_ema', 'N/A')}
+                    ✅ Status: {position.get('entry_obv_status', 'N/A')}
 
-⏰ Entry Time: {position['entry_time']}
-⏱️ Exit Time: {exit_data['exit_time']}
+                    📊 INDICATORS AT EXIT:
+                    📈 RSI: {exit_rsi if exit_rsi == 'N/A' else f'{exit_rsi:.2f}'}
+                    📉 MACD: {exit_macd if exit_macd == 'N/A' else f'{exit_macd:.2f}'} | Signal: {exit_macd_signal if exit_macd_signal == 'N/A' else f'{exit_macd_signal:.2f}'}
+                    📊 Status: {exit_macd_status}
+                    📦 OBV: {exit_obv if exit_obv == 'N/A' else f'{exit_obv:,.0f}'} | EMA: {exit_obv_ema if exit_obv_ema == 'N/A' else f'{exit_obv_ema:,.0f}'}
+                    ✅ Status: {exit_obv_status}
 
-{'💔 Loss' if pnl < 0 else '💚 Profit'}: ₹{pnl:,.2f}
-
-🔖 Remark: SL HIT
-
-📋 Entry Order: {order_id}
-📋 SL Order: {position['sl_orderid']}
-📊 Remaining Positions: {len(orderbook) - 1}"""
+                    📋 Entry Order: {order_id}
+                    📋 SL Order: {position['sl_orderid']}
+                    📊 Remaining Positions: {len(orderbook) - 1}"""
 
                         try:
                             tsl.send_telegram_alert(message=sl_message, receiver_chat_id=receiver_chat_id, bot_token=bot_token)
@@ -1035,60 +1115,95 @@ try:
                         positions_to_remove.append(order_id)
 
                     # === TARGET HIT ===
+                    # === TARGET HIT ===
                     elif tg_hit:
                         print(f"\n🎯 TARGET HIT - Order {order_id}!")
-                        print(f"   Cancelling SL and placing square-off order...")
-
+                        print(f" Cancelling SL and placing square-off order...")
                         # Cancel SL
                         if position['sl_orderid'] is not None:
                             try:
                                 tsl.cancel_order(OrderID=position['sl_orderid'])
-                                print(f"   ✅ SL order cancelled")
+                                print(f" ✅ SL order cancelled")
                             except Exception as e:
-                                print(f"   ⚠️ SL cancel error: {e}")
-
+                                print(f" ⚠️ SL cancel error: {e}")
                         time.sleep(2)
-
                         square_off_order = None
                         exit_transaction = 'SELL' if direction == 'BUY' else 'BUY'
-
                         for exit_attempt in range(3):
                             try:
                                 square_off_order = tsl.order_placement(
                                     tradingsymbol=pos_symbol,
                                     exchange='MCX',
-                                    quantity=4,
+                                    quantity=1,
                                     price=0,
                                     trigger_price=0,
                                     order_type='MARKET',
                                     transaction_type=exit_transaction,
                                     trade_type='MARGIN'
                                 )
-
                                 if square_off_order and not isinstance(square_off_order, dict):
-                                    print(f"   ✅ Square-off Order ID: {square_off_order}")
+                                    print(f" ✅ Square-off Order ID: {square_off_order}")
                                     break
                                 else:
-                                    print(f"   ⚠️ Exit attempt {exit_attempt+1}/3 failed")
+                                    print(f" ⚠️ Exit attempt {exit_attempt+1}/3 failed")
                                     time.sleep(2)
-
                             except Exception as e:
-                                print(f"   ❌ Exit order error: {e}")
+                                print(f" ❌ Exit order error: {e}")
                                 time.sleep(2)
-
                         if square_off_order and not isinstance(square_off_order, dict):
                             time.sleep(3)
                             exit_price = tsl.get_executed_price(orderid=square_off_order)
-
                             # FIXED P&L CALCULATION - MULTIPLY BY QUANTITY
                             if direction == "BUY":
                                 pnl = round((exit_price - position['entry_price']) * position['qty'], 1)
                             else:
                                 pnl = round((position['entry_price'] - exit_price) * position['qty'], 1)
+                            print(f" Direction: {direction}")
+                            print(f" Exit Price: ₹{exit_price:,.2f}")
+                            print(f" P&L: ₹{pnl:,.2f}")
 
-                            print(f"   Direction: {direction}")
-                            print(f"   Exit Price: ₹{exit_price:,.2f}")
-                            print(f"   P&L: ₹{pnl:,.2f}")
+                            # Calculate current indicators at EXIT time
+                            try:
+                                exit_chart = tsl.get_historical_data(tradingsymbol=scan_name, exchange='MCX', timeframe="15")
+                                if exit_chart is not None and len(exit_chart) >= 26:
+                                    exit_chart['rsi'] = talib.RSI(exit_chart['close'], timeperiod=14)
+                                    exit_chart['MACD'], exit_chart['MACD_Signal'], exit_chart['MACD_Hist'] = talib.MACD(
+                                        exit_chart['close'], fastperiod=12, slowperiod=26, signalperiod=9
+                                    )
+                                    exit_chart['obv'] = talib.OBV(exit_chart['close'], exit_chart['volume'])
+                                    exit_chart['obv_ema'] = talib.EMA(exit_chart['obv'], timeperiod=50)
+                                    exit_cc = exit_chart.iloc[-1]
+                                    exit_rsi = exit_cc['rsi']
+                                    exit_macd = exit_cc['MACD']
+                                    exit_macd_signal = exit_cc['MACD_Signal']
+                                    exit_obv = exit_cc['obv']
+                                    exit_obv_ema = exit_cc['obv_ema']
+
+                                    if exit_macd > exit_macd_signal:
+                                        exit_macd_status = "Above Signal (Bullish)"
+                                    else:
+                                        exit_macd_status = "Below Signal (Bearish)"
+
+                                    if exit_obv > exit_obv_ema:
+                                        exit_obv_status = "Above EMA (Bullish)"
+                                    else:
+                                        exit_obv_status = "Below EMA (Bearish)"
+                                else:
+                                    exit_rsi = "N/A"
+                                    exit_macd = "N/A"
+                                    exit_macd_signal = "N/A"
+                                    exit_macd_status = "N/A"
+                                    exit_obv = "N/A"
+                                    exit_obv_ema = "N/A"
+                                    exit_obv_status = "N/A"
+                            except:
+                                exit_rsi = "N/A"
+                                exit_macd = "N/A"
+                                exit_macd_signal = "N/A"
+                                exit_macd_status = "N/A"
+                                exit_obv = "N/A"
+                                exit_obv_ema = "N/A"
+                                exit_obv_status = "N/A"
 
                             exit_data = {
                                 'exit_price': exit_price,
@@ -1097,31 +1212,40 @@ try:
                                 'remark': 'TG_hit',
                                 'symbol': pos_symbol
                             }
-
                             update_order_exit(order_id, exit_data)
-
                             # IMPROVED TELEGRAM ALERT - TARGET HIT
                             tg_message = f"""🎯 TARGET HIT
 
-📅 Date: {position['date']}
-📊 Symbol: {pos_symbol}
-📍 Direction: {direction}
-📦 Quantity: {position['qty']}
+                    📅 Date: {position['date']}
+                    📊 Symbol: {pos_symbol}
+                    📍 Direction: {direction}
+                    📦 Quantity: {position['qty']}
+                    💰 Entry Price: ₹{position['entry_price']:,.2f}
+                    💸 Exit Price: ₹{exit_price:,.2f}
+                    🎯 Target: ₹{position['tg']:,.2f}
+                    ⏰ Entry Time: {position['entry_time']}
+                    ⏱️ Exit Time: {exit_data['exit_time']}
+                    {'💚 Profit' if pnl > 0 else '💔 Loss'}: ₹{pnl:,.2f}
+                    🔖 Remark: TARGET HIT
 
-💰 Entry Price: ₹{position['entry_price']:,.2f}
-💸 Exit Price: ₹{exit_price:,.2f}
-🎯 Target: ₹{position['tg']:,.2f}
+                    📊 INDICATORS AT ENTRY:
+                    📈 RSI: {position.get('entry_rsi', 'N/A')}
+                    📉 MACD: {position.get('entry_macd', 'N/A')} | Signal: {position.get('entry_macd_signal', 'N/A')}
+                    📊 Status: {position.get('entry_macd_status', 'N/A')}
+                    📦 OBV: {position.get('entry_obv', 'N/A')} | EMA: {position.get('entry_obv_ema', 'N/A')}
+                    ✅ Status: {position.get('entry_obv_status', 'N/A')}
 
-⏰ Entry Time: {position['entry_time']}
-⏱️ Exit Time: {exit_data['exit_time']}
+                    📊 INDICATORS AT EXIT:
+                    📈 RSI: {exit_rsi if exit_rsi == 'N/A' else f'{exit_rsi:.2f}'}
+                    📉 MACD: {exit_macd if exit_macd == 'N/A' else f'{exit_macd:.2f}'} | Signal: {exit_macd_signal if exit_macd_signal == 'N/A' else f'{exit_macd_signal:.2f}'}
+                    📊 Status: {exit_macd_status}
+                    📦 OBV: {exit_obv if exit_obv == 'N/A' else f'{exit_obv:,.0f}'} | EMA: {exit_obv_ema if exit_obv_ema == 'N/A' else f'{exit_obv_ema:,.0f}'}
+                    ✅ Status: {exit_obv_status}
 
-{'💚 Profit' if pnl > 0 else '💔 Loss'}: ₹{pnl:,.2f}
+                    📋 Entry Order: {order_id}
+                    📋 Exit Order: {square_off_order}
+                    📊 Remaining Positions: {len(orderbook) - 1}"""
 
-🔖 Remark: TARGET HIT
-
-📋 Entry Order: {order_id}
-📋 Exit Order: {square_off_order}
-📊 Remaining Positions: {len(orderbook) - 1}"""
 
                             try:
                                 tsl.send_telegram_alert(message=tg_message, receiver_chat_id=receiver_chat_id, bot_token=bot_token)
