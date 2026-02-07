@@ -46,14 +46,12 @@ except Exception as e:
 max_risk_for_today = (1.0*opening_balance)/100*-1
 
 SCAN_SYMBOL_OPTIONS = ['GOLDPETAL FEB FUT', 'GOLDPETAL27FEB26FUT',
-                         'GOLDPETAL MAY FUT', 'GOLDPETAL29MAY26FUT',
-                         'GOLDPETALMAY26FUT', 'GOLDPETAL']
-
+                       'GOLDPETAL MAY FUT', 'GOLDPETAL29MAY26FUT',
+                       'GOLDPETALMAY26FUT', 'GOLDPETAL']
 
 TRADING_SYMBOL_OPTIONS = ['GOLDPETAL FEB FUT', 'GOLDPETAL27FEB26FUT',
-                         'GOLDPETAL MAY FUT', 'GOLDPETAL29MAY26FUT',
-                         'GOLDPETALMAY26FUT', 'GOLDPETAL']
-
+                          'GOLDPETAL MAY FUT', 'GOLDPETAL29MAY26FUT',
+                          'GOLDPETALMAY26FUT', 'GOLDPETAL']
 
 # Test GOLD scan symbol
 print("🔍 Testing GOLD scan symbol formats...")
@@ -88,7 +86,7 @@ for symbol in TRADING_SYMBOL_OPTIONS:
         continue
 
 if not trading_symbol:
-    print("\\n❌ Could not find valid GOLDPETAL contract!")
+    print("\n❌ Could not find valid GOLDPETAL contract!")
     exit()
 
 watchlist = [scan_symbol]
@@ -112,22 +110,13 @@ live_trading_ws = None
 completed_orders_ws = None
 
 try:
-    # Authenticate with Google Sheets using your JSON credentials file
     gc = gspread.service_account(filename='algo-484008-d5bac2a16537.json')
-    
-    # Open the Google Sheet (make sure it exists and is shared!)
     sheet = gc.open('Gold_Trade_Data')
-    
-    # Get worksheets
     live_trading_ws = sheet.worksheet('Live_Trading')
     completed_orders_ws = sheet.worksheet('completed_orders')
-    
-    # Clear existing data (keep headers)
     live_trading_ws.clear()
     completed_orders_ws.clear()
-    
     print("✅ Google Sheet connected successfully\n")
-    
 except FileNotFoundError:
     print("❌ Error: algo-484008-adb3fbd36c0c.json not found!")
     print("📝 Make sure your Google credentials JSON file is in the project folder")
@@ -152,7 +141,7 @@ completed_orders = []
 
 bot_token = "8549724310:AAHOJhoxbl2NPzHblsi04cRVabjREadq-UU"
 receiver_chat_id = "6193962152"
-receiver_chat_id_2 = "1234522531"                                               #             1169187573
+receiver_chat_id_2 = "1234522531"
 
 orderbook[trading_symbol] = single_order.copy()
 
@@ -183,11 +172,9 @@ def save_order_to_json(order_data, filename='order_history.json'):
 def update_google_sheets():
     """Update Google Sheets with live trading data"""
     try:
-        # Update Live Trading sheet
         ordeerbook_df = pd.DataFrame(orderbook).T
         set_with_dataframe(live_trading_ws, ordeerbook_df, include_column_header=True)
         
-        # Update Completed Orders sheet
         if completed_orders:
             completed_orders_df = pd.DataFrame(completed_orders)
             set_with_dataframe(completed_orders_ws, completed_orders_df, include_column_header=True)
@@ -208,13 +195,95 @@ def check_token_validity(response, api_name):
             print(f"{'='*70}\n")
             try:
                 tsl.send_telegram_alert(message=f"🔴 BOT STOPPED - Token Expired\nAPI: {api_name}",
-                                       receiver_chat_id=receiver_chat_id, bot_token=bot_token)
+                                      receiver_chat_id=receiver_chat_id, bot_token=bot_token)
                 tsl.send_telegram_alert(message=f"🔴 BOT STOPPED - Token Expired\nAPI: {api_name}",
-                                       receiver_chat_id=receiver_chat_id_2, bot_token=bot_token)
+                                      receiver_chat_id=receiver_chat_id_2, bot_token=bot_token)
             except:
                 pass
             return True
-    return False
+    return 
+
+def check_existing_positions():
+    """Check JSON file for open positions at startup"""
+    try:
+        with open('order_history.json', 'r') as f:
+            orders = json.load(f)
+        
+        # Find orders without exit_price (still open)
+        open_positions = []
+        for order in orders:
+            if 'exit_price' not in order and 'entry_order_id' in order:
+                open_positions.append(order)
+        
+        if not open_positions:
+            print("✅ No open positions found in JSON")
+            return False
+        
+        # Get the latest open position
+        latest_position = open_positions[-1]
+        symbol = latest_position.get('symbol')
+        
+        if symbol not in orderbook:
+            orderbook[symbol] = single_order.copy()
+        
+        # Restore position to orderbook
+        orderbook[symbol]['name'] = symbol
+        orderbook[symbol]['date'] = latest_position.get('date')
+        orderbook[symbol]['entry_time'] = latest_position.get('entry_time')
+        orderbook[symbol]['entry_price'] = latest_position.get('entry_price')
+        orderbook[symbol]['buy_sell'] = latest_position.get('direction')
+        orderbook[symbol]['qty'] = latest_position.get('quantity', 1)
+        orderbook[symbol]['sl'] = latest_position.get('stop_loss_price')
+        orderbook[symbol]['tg'] = latest_position.get('target_price')
+        orderbook[symbol]['entry_orderid'] = latest_position.get('entry_order_id')
+        orderbook[symbol]['sl_orderid'] = latest_position.get('sl_order_id')
+        orderbook[symbol]['traded'] = "yes"
+        
+        print(f"\n⚠️ OPEN POSITION DETECTED!")
+        print(f"📊 Symbol: {symbol}")
+        print(f"📈 Direction: {latest_position.get('direction')}")
+        print(f"💰 Entry: ₹{latest_position.get('entry_price')}")
+        print(f"🎯 Target: ₹{latest_position.get('target_price')}")
+        print(f"🛡️ Stop Loss: ₹{latest_position.get('stop_loss_price')}")
+        print(f"⏰ Entry Time: {latest_position.get('entry_time')}")
+        print(f"🆔 Order ID: {latest_position.get('entry_order_id')}\n")
+        
+        # Update Google Sheets with existing position
+        update_google_sheets()
+        
+        # Send Telegram alert
+        message = f"""⚠️ BOT RESTARTED - EXISTING POSITION FOUND
+
+Symbol: {symbol}
+Direction: {latest_position.get('direction')}
+Entry Price: ₹{latest_position.get('entry_price')}
+Entry Time: {latest_position.get('entry_time')}
+Target: ₹{latest_position.get('target_price')}
+Stop Loss: ₹{latest_position.get('stop_loss_price')}
+Order ID: {latest_position.get('entry_order_id')}
+SL Order ID: {latest_position.get('sl_order_id')}
+
+🚫 New entries blocked until position closes"""
+        
+        tsl.send_telegram_alert(message=message,
+                                receiver_chat_id=receiver_chat_id, 
+                                bot_token=bot_token)
+        tsl.send_telegram_alert(message=message,
+                                receiver_chat_id=receiver_chat_id_2, 
+                                bot_token=bot_token)
+        
+        return True
+        
+    except FileNotFoundError:
+        print("✅ No order history file found - fresh start")
+        return False
+    except json.JSONDecodeError:
+        print("⚠️ JSON file corrupted - starting fresh")
+        return False
+    except Exception as e:
+        print(f"⚠️ Error checking positions: {e}")
+        return False
+
 
 # === MAIN TRADING LOOP ===
 try:
@@ -233,6 +302,7 @@ try:
             
             consecutive_api_failures = 0
             print(f"✅ Live PNL: ₹{live_pnl:,.2f}")
+        
         except Exception as e:
             consecutive_api_failures += 1
             print(f"❌ PNL Error: {e}")
@@ -275,7 +345,6 @@ try:
             continue
         
         for scan_name in watchlist:
-            # Update Google Sheets with current data
             update_google_sheets()
             
             print(f"\n🔍 Scanning {scan_name} at {current_time.strftime('%H:%M:%S')}")
@@ -292,20 +361,17 @@ try:
                 
                 chart['rsi'] = talib.RSI(chart['close'], timeperiod=14)
                 chart['MACD'], chart['MACD_Signal'], chart['MACD_Hist'] = talib.MACD(chart['close'],
-                                                                                       fastperiod=12,
-                                                                                       slowperiod=26,
-                                                                                       signalperiod=9)
+                                                                                     fastperiod=12,
+                                                                                     slowperiod=26,
+                                                                                     signalperiod=9)
                 
-                # Calculate OBV and its EMA
                 chart['obv'] = talib.OBV(chart['close'], chart['volume'])
                 chart['obv_ema'] = talib.EMA(chart['obv'], timeperiod=50)
                 
-                # BUY signal - OBV EMA bullish conditions
                 chart['obv_above_ema'] = chart['obv'] > chart['obv_ema']
                 chart['obv_crossover'] = (chart['obv'] > chart['obv_ema']) & (chart['obv'].shift(1) <= chart['obv_ema'].shift(1))
                 chart['buy_signal'] = chart['obv_above_ema'] | chart['obv_crossover']
                 
-                # SELL signal - OBV EMA bearish conditions
                 chart['obv_below_ema'] = chart['obv'] < chart['obv_ema']
                 chart['obv_crossunder'] = (chart['obv'] < chart['obv_ema']) & (chart['obv'].shift(1) >= chart['obv_ema'].shift(1))
                 chart['sell_signal'] = chart['obv_below_ema'] | chart['obv_crossunder']
@@ -376,7 +442,7 @@ try:
                 print(f"   📊 OBV={obv_value:,.0f} | EMA={obv_ema_value:,.0f} | Status={obv_status}")
                 print(f"   🎯 BUY: RSI>65={buy_c1} | OBV_EMA+={buy_c3} | MACD+={buy_c4}")
                 print(f"   🎯 SELL: RSI<35={sell_c1} | OBV-={sell_c3} | MACD-={sell_c4}")
-                
+            
             except Exception as e:
                 print(f"❌ Error: {e}")
                 traceback.print_exc()
@@ -518,10 +584,10 @@ try:
                         'quantity': 1,
                         'direction': 'BUY'
                     }
-                    
                     save_order_to_json(order_entry)
                     
                     message = "\n".join(f"'{key}': {repr(value)}" for key, value in orderbook[trading_symbol].items())
+                    
                     print(f"✅ BUY Order placed!")
                     
                     tsl.send_telegram_alert(message=f"✅ BUY ENTRY - {trading_symbol}\n(Signal from {scan_name})\n\n{message}",
@@ -569,7 +635,6 @@ try:
                             transaction_type='SELL',
                             trade_type='MARGIN'
                         )
-                        
                         print(f"\n   📤 Order Response: {entry_orderid}")
                     except Exception as order_error:
                         print(f"\n   ❌ Order Exception: {order_error}")
@@ -602,6 +667,7 @@ try:
                     try:
                         order_status = tsl.get_order_status(orderid=entry_orderid)
                         print(f"   📊 Order Status: {order_status}")
+                        
                         if order_status not in ["TRADED", "TRANSIT"]:
                             print(f"\n   ⚠️ Order not executed: {order_status}")
                             continue
@@ -610,7 +676,6 @@ try:
                     
                     try:
                         entry_price = tsl.get_executed_price(orderid=entry_orderid)
-                        
                         if entry_price is None or entry_price == 0:
                             print(f"   ⏳ Retrying price fetch...")
                             time.sleep(3)
@@ -627,8 +692,8 @@ try:
                         
                         print(f"\n   ✅ Entry Executed Successfully!")
                         print(f"      Entry Price: ₹{entry_price:,.2f}")
-                        print(f"      Target: ₹{orderbook[trading_symbol]['tg']:,.2f} (-0.4%)")
-                        print(f"      Stop Loss: ₹{orderbook[trading_symbol]['sl']:,.2f} (+0.8%)")
+                        print(f"      Target: ₹{orderbook[trading_symbol]['tg']:,.2f} (-0.8%)")
+                        print(f"      Stop Loss: ₹{orderbook[trading_symbol]['sl']:,.2f} (+0.4%)")
                     
                     except Exception as price_error:
                         print(f"\n   ❌ Price error: {price_error}")
@@ -655,7 +720,6 @@ try:
                         else:
                             print(f"      ⚠️ SL placement failed!")
                             orderbook[trading_symbol]['sl_orderid'] = None
-                    
                     except Exception as sl_error:
                         print(f"      ⚠️ SL error: {sl_error}")
                         orderbook[trading_symbol]['sl_orderid'] = None
@@ -675,10 +739,10 @@ try:
                         'quantity': 1,
                         'direction': 'SELL'
                     }
-                    
                     save_order_to_json(order_entry)
                     
                     message = "\n".join(f"{key}: {value}" for key, value in orderbook[trading_symbol].items())
+                    
                     print(f"\n   ✅ SELL TRADE COMPLETE!")
                     
                     try:
@@ -732,6 +796,7 @@ try:
                     
                     print(f"   📍 Entry={orderbook[trading_symbol]['entry_price']}, LTP={ltp}, PNL=₹{current_pnl}")
                     
+                    # === STOP LOSS HIT ===
                     if sl_hit:
                         orderbook[trading_symbol]['exit_time'] = str(current_time.time())[:8]
                         orderbook[trading_symbol]['exit_price'] = tsl.get_executed_price(orderid=orderbook[trading_symbol]['sl_orderid'])
@@ -742,6 +807,7 @@ try:
                             orderbook[trading_symbol]['pnl'] = round((orderbook[trading_symbol]['entry_price'] - orderbook[trading_symbol]['exit_price']), 1)
                         
                         orderbook[trading_symbol]['remark'] = "SL_hit"
+                        
                         print(f"🛑 SL Hit! PNL: ₹{orderbook[trading_symbol]['pnl']}")
                         
                         order_exit = {
@@ -756,21 +822,39 @@ try:
                             'remark': 'SL_hit',
                             'symbol': trading_symbol
                         }
-                        
                         save_order_to_json(order_exit)
                         
-                        tsl.send_telegram_alert(message=f"🛑 SL HIT - {trading_symbol}",
+                        # Enhanced Telegram notification for SL hit
+                        sl_message = f"""🛑 STOP LOSS HIT - {trading_symbol}
+                        
+Direction: {direction}
+Entry Price: ₹{orderbook[trading_symbol]['entry_price']:,.2f}
+Exit Price: ₹{orderbook[trading_symbol]['exit_price']:,.2f}
+Stop Loss: ₹{orderbook[trading_symbol]['sl']:,.2f}
+
+⏰ Entry Time: {orderbook[trading_symbol]['entry_time']}
+⏰ Exit Time: {orderbook[trading_symbol]['exit_time']}
+
+💰 P&L: ₹{orderbook[trading_symbol]['pnl']:,.2f}
+📊 Quantity: {orderbook[trading_symbol]['qty']}
+
+Entry Order: {orderbook[trading_symbol]['entry_orderid']}
+SL Order: {orderbook[trading_symbol]['sl_orderid']}"""
+                        
+                        tsl.send_telegram_alert(message=sl_message,
                                               receiver_chat_id=receiver_chat_id, bot_token=bot_token)
-                        tsl.send_telegram_alert(message=f"🛑 SL HIT - {trading_symbol}",
+                        tsl.send_telegram_alert(message=sl_message,
                                               receiver_chat_id=receiver_chat_id_2, bot_token=bot_token)
                         
                         if reentry == "yes":
                             completed_orders.append(orderbook[trading_symbol])
                             orderbook[trading_symbol] = single_order.copy()
                     
+                    # === TARGET HIT ===
                     if tg_hit:
                         print(f"📤 Target hit! Cancelling SL and placing square-off order...")
                         
+                        # Cancel SL order
                         if orderbook[trading_symbol]['sl_orderid'] is not None:
                             try:
                                 tsl.cancel_order(OrderID=orderbook[trading_symbol]['sl_orderid'])
@@ -814,6 +898,7 @@ try:
                                 orderbook[trading_symbol]['pnl'] = orderbook[trading_symbol]['entry_price'] - orderbook[trading_symbol]['exit_price']
                             
                             orderbook[trading_symbol]['remark'] = "TG_hit"
+                            
                             print(f"🎯 Target! PNL: ₹{orderbook[trading_symbol]['pnl']}")
                             
                             order_exit = {
@@ -828,12 +913,28 @@ try:
                                 'remark': 'TG_hit',
                                 'symbol': trading_symbol
                             }
-                            
                             save_order_to_json(order_exit)
                             
-                            tsl.send_telegram_alert(message=f"🎯 TARGET - {trading_symbol}",
+                            # Enhanced Telegram notification for Target hit
+                            tg_message = f"""🎯 TARGET HIT - {trading_symbol}
+
+Direction: {direction}
+Entry Price: ₹{orderbook[trading_symbol]['entry_price']:,.2f}
+Exit Price: ₹{orderbook[trading_symbol]['exit_price']:,.2f}
+Target: ₹{orderbook[trading_symbol]['tg']:,.2f}
+
+⏰ Entry Time: {orderbook[trading_symbol]['entry_time']}
+⏰ Exit Time: {orderbook[trading_symbol]['exit_time']}
+
+💰 P&L: ₹{orderbook[trading_symbol]['pnl']:,.2f}
+📊 Quantity: {orderbook[trading_symbol]['qty']}
+
+Entry Order: {orderbook[trading_symbol]['entry_orderid']}
+Exit Order: {square_off_order}"""
+                            
+                            tsl.send_telegram_alert(message=tg_message,
                                                   receiver_chat_id=receiver_chat_id, bot_token=bot_token)
-                            tsl.send_telegram_alert(message=f"🎯 TARGET - {trading_symbol}",
+                            tsl.send_telegram_alert(message=tg_message,
                                                   receiver_chat_id=receiver_chat_id_2, bot_token=bot_token)
                             
                             if reentry == "yes":
@@ -851,8 +952,10 @@ try:
 
 except KeyboardInterrupt:
     print("\n\n⚠️ Bot interrupted by user (Ctrl+C)")
+
 except Exception as e:
     print(f"\n\n❌ Fatal error: {e}")
     traceback.print_exc()
+
 finally:
     print("\n🛑 BOT STOPPED\n")
